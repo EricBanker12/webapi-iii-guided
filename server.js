@@ -6,13 +6,16 @@ const hubsRouter = require('./hubs/hubs-router.js');
 
 const server = express();
 
-function dateLogger(req, res, next) {
-  console.log(new Date().toISOString())
+function methodAndPathLogger(req, res, next) {
+  console.log(`${req.method} ${req.path}`)
   next()
 }
 
-function methodAndPathLogger(req, res, next) {
-  console.log(`${req.method} ${req.path}`)
+const dateLogger = require('./api/dateLogger-middleware')
+
+function doubler(req, res, next) {
+  const num = Number(req.query.num || 0)
+  req.doubled = num * 2
   next()
 }
 
@@ -39,13 +42,10 @@ server.use(methodAndPathLogger)
 
 server.use('/api/hubs', hubsRouter);
 
-server.get('/', (req, res) => {
-  const nameInsert = (req.name) ? ` ${req.name}` : '';
+// server.use(doubler)
 
-  res.send(`
-    <h2>Lambda Hubs API</h2>
-    <p>Welcome${nameInsert} to the Lambda Hubs API</p>
-    `);
+server.get('/', doubler, (req, res) => {
+  res.json({num: req.doubled})
 });
 
 module.exports = server;
